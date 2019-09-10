@@ -1,0 +1,45 @@
+{
+   "namespace":"mykidong.domain.avro.events",
+   "type":"record",
+   "doc":"Event Log",
+   "name":"Events",
+   "fields":[
+      {
+         "name":"version",
+         "type":"string"
+      },
+      {
+         "name":"type",
+         "type":"int"
+      },
+      {
+         "name":"issuedAt",
+         "type":"long"
+      },
+      {
+         "name":"messageContentType",
+         "type":[
+            "null",
+            "string"
+         ]
+      },
+      {
+         "name":"requestMessage",
+         "type":[
+            "null",
+            "string"
+         ]
+      },
+      {
+         "name":"dataContentType",
+         "type":[
+            "null",
+            "string"
+         ]
+      },
+      {
+         "name":"remoteAddress",
+         "type":"string"
+      }
+   ]
+}
