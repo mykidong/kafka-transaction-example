@@ -4,6 +4,7 @@
     <groupId>mykidong</groupId>
     <artifactId>kafka-transaction-example</artifactId>
     <version>0.0.1-SNAPSHOT</version>
+    <packaging>jar</packaging>
     <name>Kafka Transaction Example</name>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -180,6 +181,33 @@
     <build>
         <pluginManagement>
             <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <configuration>
+                        <excludes>
+                            <exclude>**/META-INF/spring/**/*.xml</exclude>
+                            <exclude>**/META-INF/mybatis/**/*.xml</exclude>
+                            <exclude>**/bin/**/*.*</exclude>
+                            <exclude>**/bin/**/*</exclude>
+                            <exclude>*.xml</exclude>
+                            <exclude>**/*.properties</exclude>
+                            <exclude>*.conf</exclude>
+                        </excludes>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>jar</goal>
+                            </goals>
+                            <configuration>
+                                <includes>
+                                    <include>**/*.class</include>
+                                </includes>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
