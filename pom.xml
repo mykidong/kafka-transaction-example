@@ -13,6 +13,11 @@
         <!-- spring -->
         <spring.version>5.1.9.RELEASE</spring.version>
 
+        <!-- logging -->
+        <slf4j.version>1.7.28</slf4j.version>
+        <log4j.version>1.2.17</log4j.version>
+        <log4j-to-slf4j.version>2.8.2</log4j-to-slf4j.version>
+
         <!-- testing -->
         <junit.version>4.12</junit.version>
 
@@ -177,6 +182,21 @@
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-to-slf4j</artifactId>
+            <version>${log4j-to-slf4j.version}</version>
+        </dependency>
     </dependencies>
     <build>
         <pluginManagement>
@@ -251,8 +271,8 @@
                             <goal>schema</goal>
                         </goals>
                         <configuration>
-                            <sourceDirectory>${project.basedir}/src/test/resources/META-INF/avro/</sourceDirectory>
-                            <outputDirectory>${project.basedir}/src/test/java/</outputDirectory>
+                            <sourceDirectory>${project.basedir}/src/main/resources/META-INF/avro/</sourceDirectory>
+                            <outputDirectory>${project.basedir}/src/main/java/</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>

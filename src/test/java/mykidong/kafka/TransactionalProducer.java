@@ -2,6 +2,7 @@ package mykidong.kafka;
 
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import kafka.common.KafkaException;
+
 import mykidong.domain.UserKey;
 import mykidong.domain.avro.events.Events;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -9,6 +10,7 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.streams.StreamsConfig;
 import org.junit.Test;
+
 
 import java.util.Properties;
 
@@ -42,7 +44,7 @@ public class TransactionalProducer {
         props.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, 1);
 
         // partition class.
-        props.put(ProducerConfig.PARTITIONER_CLASS_CONFIG, "mykidong.kafka.partitioner.UserKeyPartitioner");
+        props.put(ProducerConfig.PARTITIONER_CLASS_CONFIG, "mykidong.partitioner.UserKeyPartitioner");
 
 
         // construct producer.
@@ -54,10 +56,12 @@ public class TransactionalProducer {
             // begin transaction.
             producer.beginTransaction();
 
-            // send messages.
-            UserKey key = null; // TODO:
-            Events events = null; // TODO:
-            producer.send(new ProducerRecord<UserKey, Events>(topic, key, events));
+            for(int i = 0; i < 10; i++) {
+                // send messages.
+                UserKey key = null; // TODO:
+                Events events = null; // TODO:
+                producer.send(new ProducerRecord<UserKey, Events>(topic, key, events));
+            }
 
             // commit transaction.
             producer.commitTransaction();

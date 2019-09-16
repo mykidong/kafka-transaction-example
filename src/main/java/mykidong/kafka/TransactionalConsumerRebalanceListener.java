@@ -8,11 +8,11 @@ import java.util.Collection;
 /**
  * Created by mykidong on 2019-09-16.
  */
-public class TransactionalConsumerRebalanceListener implements ConsumerRebalanceListener {
+public class TransactionalConsumerRebalanceListener<K, V> implements ConsumerRebalanceListener {
 
-    private TransactionalConsumer.ConsumeHandler consumeHandler;
+    private AbstractConsumerHandler<K, V> consumeHandler;
 
-    public TransactionalConsumerRebalanceListener(TransactionalConsumer.ConsumeHandler consumeHandler)
+    public TransactionalConsumerRebalanceListener(AbstractConsumerHandler<K, V> consumeHandler)
     {
         this.consumeHandler = consumeHandler;
     }

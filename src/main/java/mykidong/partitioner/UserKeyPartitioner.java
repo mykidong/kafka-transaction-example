@@ -1,4 +1,4 @@
-package mykidong.kafka.partitioner;
+package mykidong.partitioner;
 
 import mykidong.domain.UserKey;
 import org.apache.kafka.clients.producer.internals.DefaultPartitioner;
