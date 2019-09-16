@@ -21,9 +21,9 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * Created by mykidong on 2019-09-10.
  */
-public class TransactionalConsumer {
+public class TransactionalAssignedConsumer {
 
-    private static Logger log = LoggerFactory.getLogger(TransactionalConsumer.class);
+    private static Logger log = LoggerFactory.getLogger(TransactionalAssignedConsumer.class);
 
     @Before
     public void init() throws Exception {
@@ -36,15 +36,18 @@ public class TransactionalConsumer {
     public void consume() throws Exception
     {
         // ----------------------------------------------------------
-        // 하나의 consumer 가 하나 이상의 topic 과 partition 들을 consuming 할때
+        // 하나의 consumer 가 하나의 특정 topic partition 에만 assign 되어
+        // consuming 을 할때: 특정 topic partition number 와 unique 한 group id 를 설정함.
         //
         // transactional(exactly once) 한 process 하는 예제.
         // ----------------------------------------------------------
 
+
         String brokers = System.getProperty("brokers", "localhost:9092");
         String topic = System.getProperty("topic", "test-events");
+        String partition = System.getProperty("partition", "0"); // topic partition.
         String registry = System.getProperty("registry", "http://localhost:8081");
-        String groupId = System.getProperty("groupId", "group-test");
+        String groupId = System.getProperty("groupId", "group-p1"); // unique group id.
 
         Properties props = new Properties();
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, brokers);
@@ -62,7 +65,7 @@ public class TransactionalConsumer {
         props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
 
         // construct consume handler.
-        ConsumeHandler consumeHandler = new ConsumeHandler(props, topic);
+        ConsumeHandler consumeHandler = new ConsumeHandler(props, topic, Integer.valueOf(partition));
         consumeHandler.start();
 
         Thread.sleep(Long.MAX_VALUE);
@@ -71,12 +74,14 @@ public class TransactionalConsumer {
     public static class ConsumeHandler extends Thread {
         KafkaConsumer<String, Events> consumer;
         private final String topic;
+        private final int partition;
 
         private AtomicLong count = new AtomicLong(0);
 
-        public ConsumeHandler(Properties props, String topic) {
+        public ConsumeHandler(Properties props, String topic, int partition) {
             consumer = new KafkaConsumer<>(props);
             this.topic = topic;
+            this.partition = partition;
         }
 
         public KafkaConsumer<String, Events> getConsumer()
@@ -104,7 +109,7 @@ public class TransactionalConsumer {
             // TODO: commit db transaction.
         }
 
-        public long getOffsetFromDB(TopicPartition topicPartition)
+        public long getOffsetFromDB(TopicPartition partition)
         {
             long offset = -1L;
 
@@ -115,18 +120,13 @@ public class TransactionalConsumer {
         }
 
         public void run() {
-            // consumer subscribe with consumer rebalance listener.
-            consumer.subscribe(Arrays.asList(topic), new TransactionalConsumerRebalanceListener(this));
-            consumer.poll(0);
+            TopicPartition topicPartition = new TopicPartition(topic, partition);
 
-            // When the consumer first starts, after we subscribed to topics, we call poll()
-            // once to make sure we join a consumer group and get assigned partitions and
-            // then we immediately seek() to the correct offset in the partitions we are assigned
-            // to. Keep in mind that seek() only updates the position we are consuming from,
-            // so the next poll() will fetch the right messages.
-            for (TopicPartition topicPartition: consumer.assignment()) {
-                consumer.seek(topicPartition, getOffsetFromDB(topicPartition));
-            }
+            // 하나의 partition 에만 assign 함.
+            consumer.assign(Arrays.asList(new TopicPartition(topic, partition)));
+
+            // 그리고 consumer 는 해당 partiion 의 offset 을 seek 함.
+            consumer.seek(topicPartition, getOffsetFromDB(topicPartition));
 
 
             while (true) {
