@@ -31,13 +31,13 @@ public class TransactionalConsumerTest {
         String groupId = System.getProperty("groupId", "group-test");
 
         ArrayList argsList = new ArrayList();
-        argsList.add("--brokers ");
+        argsList.add("--brokers");
         argsList.add(brokers);
-        argsList.add("--topic ");
+        argsList.add("--topic");
         argsList.add(topic);
-        argsList.add("--registry ");
+        argsList.add("--registry");
         argsList.add(registry);
-        argsList.add("--groupId ");
+        argsList.add("--groupId");
         argsList.add(groupId);
 
         TransactionalConsumerMain.main((String[])argsList.toArray(new String[0]));

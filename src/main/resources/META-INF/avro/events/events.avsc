@@ -1,0 +1,20 @@
+{
+   "namespace":"mykidong.domain.avro.events",
+   "type":"record",
+   "doc":"Event Log",
+   "name":"Events",
+   "fields":[
+      {
+         "name":"eventTime",
+         "type":"long"
+      },
+      {
+         "name":"orderInfo",
+         "type":"string"
+      },
+      {
+         "name":"customerId",
+         "type":"string"
+      }
+   ]
+}

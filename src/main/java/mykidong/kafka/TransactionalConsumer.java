@@ -2,6 +2,7 @@ package mykidong.kafka;
 
 import mykidong.domain.avro.events.Events;
 import mykidong.util.JsonUtils;
+import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.common.TopicPartition;
@@ -12,6 +13,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Properties;
+
+import static mykidong.kafka.TransactionalAssignedConsumer.convertGenericToSpecificRecord;
 
 /**
  * Created by mykidong on 2019-09-10.
@@ -50,8 +53,11 @@ public class TransactionalConsumer extends AbstractConsumerHandler<String, Event
 
                 ConsumerRecords<String, Events> records = consumer.poll(100);
                 for (ConsumerRecord<String, Events> record : records) {
-                    Events events = record.value();
-                    log.info("events: [" + JsonUtils.toJson(new ObjectMapper(), events) + "], topic: [" + record.topic() + "], partition: [" + record.partition() + "], offset: [" + record.offset() + "]");
+                    String key = record.key();
+                    GenericRecord genericRecord = record.value();
+                    Events events = convertGenericToSpecificRecord(genericRecord);
+
+                    log.info("key: [" + key + "], events: [" + events.toString() + "], topic: [" + record.topic() + "], partition: [" + record.partition() + "], offset: [" + record.offset() + "]");
 
                     // process events.
                     processEvents(events);

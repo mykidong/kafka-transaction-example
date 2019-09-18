@@ -1,11 +1,17 @@
 package mykidong.kafka;
 
+import mykidong.api.dao.EventsDao;
+import mykidong.dao.mysql.MySQLEventsDao;
 import mykidong.domain.avro.events.Events;
+import mykidong.util.JsonUtils;
+import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.Properties;
 
 /**
@@ -20,9 +26,10 @@ public abstract class AbstractConsumerHandler<K, V> implements ConsumerHandler<K
     protected int partition;
     protected boolean wakeupCalled = false;
 
+    private EventsDao eventsDao;
+
     public AbstractConsumerHandler(Properties props, String topic) {
-        consumer = new KafkaConsumer<>(props);
-        this.topic = topic;
+        this(props, topic, -1);
     }
 
 
@@ -31,6 +38,8 @@ public abstract class AbstractConsumerHandler<K, V> implements ConsumerHandler<K
         consumer = new KafkaConsumer<>(props);
         this.topic = topic;
         this.partition = partition;
+
+        eventsDao = new MySQLEventsDao();
     }
 
 
@@ -45,34 +54,37 @@ public abstract class AbstractConsumerHandler<K, V> implements ConsumerHandler<K
 
     public void processEvents(Events events) {
         // TODO: process events streams.
+
+        log.info("events processed: [{}]", events.toString());
     }
 
     public void saveEventsToDB(Events events) {
-        // TODO: save processed events to db.
+
+        eventsDao.saveEventsToDB(events);
+
+        log.info("events saved to db: [{}]", events.toString());
     }
 
     public void saveOffsetsToDB(String topic, int partition, long offset) {
-        // TODO: save offset info to db.
+        eventsDao.saveOffsetsToDB(topic, partition, offset);
+
+        log.info("offset saved to db - topic: [{}], partition: [{}], offset: [{}]", Arrays.asList(topic, partition, offset).toArray());
     }
 
     public void commitDBTransaction() {
-        // TODO: commit db transaction.
+        eventsDao.commitDBTransaction();
+
+        log.info("transaction committed...");
     }
 
     public long getOffsetFromDB(TopicPartition topicPartition) {
-        long offset = -1L;
 
-        String topic = topicPartition.topic();
-        int partition = topicPartition.partition();
+        long offset = eventsDao.getOffsetFromDB(topicPartition);
 
-        // TODO: get offset from db with topic and partition.
-        // 이때 db 에 저장된 offset + 1 로 return 을 함.
-
-        log.info("offset to be returned: [{}]", offset);
+        log.info("offset returned: [{}]", offset);
 
         return offset;
     }
-
 
     public abstract void run();
 }

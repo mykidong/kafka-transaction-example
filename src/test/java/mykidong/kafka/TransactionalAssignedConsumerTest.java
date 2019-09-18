@@ -31,15 +31,15 @@ public class TransactionalAssignedConsumerTest {
         String groupId = System.getProperty("groupId", "group-p1"); // unique group id.
 
         ArrayList argsList = new ArrayList();
-        argsList.add("--brokers ");
+        argsList.add("--brokers");
         argsList.add(brokers);
-        argsList.add("--topic ");
+        argsList.add("--topic");
         argsList.add(topic);
-        argsList.add("--partition ");
+        argsList.add("--partition");
         argsList.add(partition);
-        argsList.add("--registry ");
+        argsList.add("--registry");
         argsList.add(registry);
-        argsList.add("--groupId ");
+        argsList.add("--groupId");
         argsList.add(groupId);
 
         TransactionalAssignedConsumerMain.main((String[])argsList.toArray(new String[0]));
