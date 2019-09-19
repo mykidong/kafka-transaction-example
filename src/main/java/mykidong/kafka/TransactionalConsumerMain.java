@@ -16,9 +16,9 @@ public class TransactionalConsumerMain {
     public static void main(String[] args)
     {
         // ----------------------------------------------------------
-        // 하나의 consumer 가 하나 이상의 topic 과 partition 들을 consuming 할때
+        // consumer can be assigned to multiple partitions.
         //
-        // transactional(exactly once) 한 process 하는 예제.
+        // transactional(exactly once) consumer example.
         // ----------------------------------------------------------
 
         OptionParser parser = new OptionParser();

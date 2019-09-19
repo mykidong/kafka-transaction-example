@@ -22,10 +22,11 @@ CREATE DATABASE kafkatx;
 use kafkatx;
 
 CREATE TABLE `offset` (
+    `group_id` VARCHAR(255),
 	`topic` VARCHAR(255),
 	`partition` INT,
 	`offset` BIGINT,
-	PRIMARY KEY (`topic`, `partition`)
+	PRIMARY KEY (`group_id`, `topic`, `partition`)
 );
 
 create table `record` (

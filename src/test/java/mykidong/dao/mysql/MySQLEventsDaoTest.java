@@ -2,9 +2,8 @@ package mykidong.dao.mysql;
 
 import mykidong.api.dao.EventsDao;
 import mykidong.domain.avro.events.Events;
-import mykidong.kafka.TransactionalAssignedConsumerTest;
-import mykidong.util.Log4jConfigurer;
 import org.apache.kafka.common.TopicPartition;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -48,22 +47,25 @@ public class MySQLEventsDaoTest {
 
     private void saveOffsetsToDB() throws Exception
     {
+        String groupId = "group-test";
         String topic = "test-topic";
         int partition = 0;
         long offset = 1;
 
-        eventsDao.saveOffsetsToDB(topic, partition, offset);
+        eventsDao.saveOffsetsToDB(groupId, topic, partition, offset);
     }
 
     @Test
     public void getOffsetFromDB() throws Exception
     {
+        String groupId = "group-test";
         String topic = "test-topic";
         int partition = 0;
 
         TopicPartition topicPartition = new TopicPartition(topic, partition);
-        long offset = eventsDao.getOffsetFromDB(topicPartition);
+        long offset = eventsDao.getOffsetFromDB(groupId, topicPartition);
         log.info("offset returned: [{}]", offset);
+        Assert.assertTrue(offset == 2);
     }
 
 }

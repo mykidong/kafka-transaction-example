@@ -54,29 +54,31 @@ public class MySQLEventsDao implements EventsDao{
         return new Character((char) 96).toString();
     }
 
-    public void saveOffsetsToDB(String topic, int partition, long offset) {
+    public void saveOffsetsToDB(String groupId, String topic, int partition, long offset) {
         try {
-            boolean hasOffsetEntry = hasOffsetEntry(topic, partition);
+            boolean hasOffsetEntry = hasOffsetEntry(groupId, topic, partition);
             log.info("hasOffsetEntry: [{}]", hasOffsetEntry);
 
             String sql = null;
             if(hasOffsetEntry) {
-                sql = "UPDATE " + getBackTick() + "offset" + getBackTick() + " SET " + getBackTick() + "offset" + getBackTick() + " = ? WHERE " + getBackTick() + "topic" + getBackTick() + " = ? AND " + getBackTick() + "partition" + getBackTick() + " = ?";
+                sql = "UPDATE " + getBackTick() + "offset" + getBackTick() + " SET " + getBackTick() + "offset" + getBackTick() + " = ? WHERE " + getBackTick() + "group_id" + getBackTick() + " = ? AND " + getBackTick() + "topic" + getBackTick() + " = ? AND " + getBackTick() + "partition" + getBackTick() + " = ?";
                 PreparedStatement ps = conn.prepareStatement(sql);
 
                 ps.setLong(1, offset);
-                ps.setString(2, topic);
-                ps.setInt(3, partition);
+                ps.setString(2, groupId);
+                ps.setString(3, topic);
+                ps.setInt(4, partition);
                 ps.executeUpdate();
             }
             else
             {
-                sql = "INSERT INTO " + getBackTick() + "offset" + getBackTick() + " (" + getBackTick() + "topic" + getBackTick() + ", " + getBackTick() + "partition" + getBackTick() + ", " + getBackTick() + "offset" + getBackTick() + ") VALUES (?,?,?)";
+                sql = "INSERT INTO " + getBackTick() + "offset" + getBackTick() + " (" + getBackTick() + "group_id" + getBackTick() + ", " + getBackTick() + "topic" + getBackTick() + ", " + getBackTick() + "partition" + getBackTick() + ", " + getBackTick() + "offset" + getBackTick() + ") VALUES (?, ?,?,?)";
                 PreparedStatement ps = conn.prepareStatement(sql);
 
-                ps.setString(1, topic);
-                ps.setInt(2, partition);
-                ps.setLong(3, offset);
+                ps.setString(1, groupId);
+                ps.setString(2, topic);
+                ps.setInt(3, partition);
+                ps.setLong(4, offset);
                 ps.execute();
             }
 
@@ -95,14 +97,15 @@ public class MySQLEventsDao implements EventsDao{
         }
     }
 
-    private boolean hasOffsetEntry(String topic, int partition) {
+    private boolean hasOffsetEntry(String groupId, String topic, int partition) {
         boolean hasOffsetEntry = false;
         try {
-            String sql = "SELECT count(*) as cnt FROM " + getBackTick() + "offset" + getBackTick() + " WHERE " + getBackTick() + "topic" + getBackTick() + " = ? AND " + getBackTick() + "partition" + getBackTick() + " = ?";
+            String sql = "SELECT count(*) as cnt FROM " + getBackTick() + "offset" + getBackTick() + " WHERE " + getBackTick() + "group_id" + getBackTick() + " = ? AND " + getBackTick() + "topic" + getBackTick() + " = ? AND " + getBackTick() + "partition" + getBackTick() + " = ?";
             PreparedStatement ps = conn.prepareStatement(sql);
 
-            ps.setString(1, topic);
-            ps.setInt(2, partition);
+            ps.setString(1, groupId);
+            ps.setString(2, topic);
+            ps.setInt(3, partition);
 
             ResultSet rs = ps.executeQuery();
 
@@ -117,7 +120,7 @@ public class MySQLEventsDao implements EventsDao{
         return hasOffsetEntry;
     }
 
-    public long getOffsetFromDB(TopicPartition topicPartition) {
+    public long getOffsetFromDB(String groupId, TopicPartition topicPartition) {
         String topic = topicPartition.topic();
         int partition = topicPartition.partition();
 
@@ -125,11 +128,12 @@ public class MySQLEventsDao implements EventsDao{
 
         ResultSet rs = null;
         try {
-            String sql = "SELECT " + getBackTick() + "offset" + getBackTick() + " as os FROM " + getBackTick() + "offset" + getBackTick() + " WHERE " + getBackTick() + "topic" + getBackTick() + " = ? AND " + getBackTick() + "partition" + getBackTick() + " = ?";
+            String sql = "SELECT " + getBackTick() + "offset" + getBackTick() + " as os FROM " + getBackTick() + "offset" + getBackTick() + " WHERE " + getBackTick() + "group_id" + getBackTick() + " = ? AND " + getBackTick() + "topic" + getBackTick() + " = ? AND " + getBackTick() + "partition" + getBackTick() + " = ?";
             PreparedStatement ps = conn.prepareStatement(sql);
 
-            ps.setString(1, topic);
-            ps.setInt(2, partition);
+            ps.setString(1, groupId);
+            ps.setString(2, topic);
+            ps.setInt(3, partition);
 
             rs = ps.executeQuery();
             while (rs.next()) {

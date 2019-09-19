@@ -1,7 +1,6 @@
 package mykidong.kafka;
 
 import mykidong.domain.avro.events.Events;
-import mykidong.util.JsonUtils;
 import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.Decoder;
@@ -13,7 +12,6 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.WakeupException;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +41,9 @@ public class TransactionalAssignedConsumer extends AbstractConsumerHandler<Strin
             consumer.assign(Arrays.asList(new TopicPartition(topic, partition)));
 
             // 그리고 consumer 는 해당 partiion 의 offset 을 seek 함.
-            consumer.seek(topicPartition, getOffsetFromDB(topicPartition));
+            long offset = getOffsetFromDB(groupId, topicPartition);
+            consumer.seek(topicPartition, offset);
+            log.info("consumer seek to the offset [{}] with groupId [{}], topic [{}] and parition [{}]", Arrays.asList(offset, groupId, topicPartition.topic(), topicPartition.partition()).toArray());
 
 
             while (true) {
@@ -54,25 +54,28 @@ public class TransactionalAssignedConsumer extends AbstractConsumerHandler<Strin
                 }
 
                 ConsumerRecords<String, Events> records = consumer.poll(100);
-                for (ConsumerRecord<String, Events> record : records) {
-                    String key = record.key();
-                    GenericRecord genericRecord = record.value();
-                    Events events = convertGenericToSpecificRecord(genericRecord);
+                if(!records.isEmpty()) {
+                    for (ConsumerRecord<String, Events> record : records) {
+                        String key = record.key();
+                        GenericRecord genericRecord = record.value();
+                        Events events = convertGenericToSpecificRecord(genericRecord);
 
-                    log.info("key: [" + key + "], events: [" + events.toString() + "], topic: [" + record.topic() + "], partition: [" + record.partition() + "], offset: [" + record.offset() + "]");
+                        log.info("key: [" + key + "], events: [" + events.toString() + "], topic: [" + record.topic() + "], partition: [" + record.partition() + "], offset: [" + record.offset() + "]");
 
 
-                    // process events.
-                    processEvents(events);
+                        // process events.
+                        processEvents(events);
 
-                    // an action involved in this db transaction.
-                    saveEventsToDB(events);
+                        // an action involved in this db transaction.
+                        // NOTE: if consumers run with difference group id, avoid saving duplicated events to db.
+                        saveEventsToDB(events);
 
-                    // another action involved in this db transaction.
-                    saveOffsetsToDB(record.topic(), record.partition(), record.offset());
+                        // another action involved in this db transaction.
+                        saveOffsetsToDB(groupId, record.topic(), record.partition(), record.offset());
+                    }
+
+                    commitDBTransaction();
                 }
-
-                commitDBTransaction();
             }
 
         } catch (WakeupException e) {

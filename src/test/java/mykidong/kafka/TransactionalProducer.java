@@ -9,6 +9,7 @@ import mykidong.util.Log4jConfigurer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.streams.StreamsConfig;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Properties;
+import java.util.concurrent.Future;
 
 /**
  * Created by mykidong on 2019-09-10.
@@ -74,9 +76,9 @@ public class TransactionalProducer {
             producer.beginTransaction();
             log.info("tx begun...");
 
-            for(int i = 0; i < 10; i++) {
+            for(int i = 0; i < 20; i++) {
                 Events events = new Events();
-                events.setCustomerId("customer-id-" + (i % 3));
+                events.setCustomerId("customer-id-" + (i % 5));
                 events.setOrderInfo("some order info " + new Date().toString() + "-" + i);
 
                 Date date = new Date();
@@ -87,9 +89,11 @@ public class TransactionalProducer {
 
 
                 // send messages.
-                producer.send(new ProducerRecord<UserKey, Events>(topic, key, events));
-
+                Future<RecordMetadata> response = producer.send(new ProducerRecord<UserKey, Events>(topic, key, events));
                 log.info("message sent ... " + new Date().toString() + "-" + i);
+
+                RecordMetadata recordMetadata = response.get();
+                log.info("response - topic [{}], partition [{}], offset [{}]", Arrays.asList(recordMetadata.topic(), recordMetadata.partition(), recordMetadata.offset()).toArray());
             }
 
             // commit transaction.

@@ -5,6 +5,7 @@ import mykidong.dao.mysql.MySQLEventsDao;
 import mykidong.domain.avro.events.Events;
 import mykidong.util.JsonUtils;
 import org.apache.avro.generic.GenericRecord;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -25,6 +26,8 @@ public abstract class AbstractConsumerHandler<K, V> implements ConsumerHandler<K
     protected String topic;
     protected int partition;
     protected boolean wakeupCalled = false;
+    protected Properties props;
+    protected String groupId;
 
     private EventsDao eventsDao;
 
@@ -35,6 +38,8 @@ public abstract class AbstractConsumerHandler<K, V> implements ConsumerHandler<K
 
     public AbstractConsumerHandler(Properties props, String topic, int partition)
     {
+        this.props = props;
+        groupId = props.getProperty(ConsumerConfig.GROUP_ID_CONFIG);
         consumer = new KafkaConsumer<>(props);
         this.topic = topic;
         this.partition = partition;
@@ -65,10 +70,10 @@ public abstract class AbstractConsumerHandler<K, V> implements ConsumerHandler<K
         log.info("events saved to db: [{}]", events.toString());
     }
 
-    public void saveOffsetsToDB(String topic, int partition, long offset) {
-        eventsDao.saveOffsetsToDB(topic, partition, offset);
+    public void saveOffsetsToDB(String groupId, String topic, int partition, long offset) {
+        eventsDao.saveOffsetsToDB(groupId, topic, partition, offset);
 
-        log.info("offset saved to db - topic: [{}], partition: [{}], offset: [{}]", Arrays.asList(topic, partition, offset).toArray());
+        log.info("offset saved to db - groupId: [{}], topic: [{}], partition: [{}], offset: [{}]", Arrays.asList(groupId, topic, partition, offset).toArray());
     }
 
     public void commitDBTransaction() {
@@ -77,11 +82,11 @@ public abstract class AbstractConsumerHandler<K, V> implements ConsumerHandler<K
         log.info("transaction committed...");
     }
 
-    public long getOffsetFromDB(TopicPartition topicPartition) {
+    public long getOffsetFromDB(String groupId, TopicPartition topicPartition) {
 
-        long offset = eventsDao.getOffsetFromDB(topicPartition);
+        long offset = eventsDao.getOffsetFromDB(groupId, topicPartition);
 
-        log.info("offset returned: [{}]", offset);
+        log.info("offset returned: [{}] with groupId: [{}], topic: [{}], partition: [{}]", Arrays.asList(offset, groupId, topicPartition.topic(), topicPartition.partition()).toArray());
 
         return offset;
     }

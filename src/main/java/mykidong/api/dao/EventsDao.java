@@ -10,10 +10,10 @@ public interface EventsDao {
 
     void saveEventsToDB(Events events);
 
-    void saveOffsetsToDB(String topic, int partition, long offset);
+    void saveOffsetsToDB(String groupId, String topic, int partition, long offset);
 
     void commitDBTransaction();
 
-    long getOffsetFromDB(TopicPartition topicPartition);
+    long getOffsetFromDB(String groupId, TopicPartition topicPartition);
 
 }

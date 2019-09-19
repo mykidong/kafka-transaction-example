@@ -16,10 +16,10 @@ public class TransactionalAssignedConsumerMain {
     public static void main(String[] args)
     {
         // ----------------------------------------------------------
-        // 하나의 consumer 가 하나의 특정 topic partition 에만 assign 되어
-        // consuming 을 할때: 특정 topic partition number 와 unique 한 group id 를 설정함.
+        // consumer is assigned to just one partition with unique group id.
+        // that is, one partition per consumer approach.
         //
-        // transactional(exactly once) 한 process 하는 예제.
+        // transactional(exactly once) consumer example.
         // ----------------------------------------------------------
 
 
