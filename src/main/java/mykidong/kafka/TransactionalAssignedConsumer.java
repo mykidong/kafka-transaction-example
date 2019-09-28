@@ -1,13 +1,6 @@
 package mykidong.kafka;
 
 import mykidong.domain.avro.events.Events;
-import org.apache.avro.generic.GenericDatumWriter;
-import org.apache.avro.generic.GenericRecord;
-import org.apache.avro.io.Decoder;
-import org.apache.avro.io.DecoderFactory;
-import org.apache.avro.io.Encoder;
-import org.apache.avro.io.EncoderFactory;
-import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.common.TopicPartition;
@@ -15,7 +8,6 @@ import org.apache.kafka.common.errors.WakeupException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 import java.util.Properties;
 
@@ -57,8 +49,7 @@ public class TransactionalAssignedConsumer extends AbstractConsumerHandler<Strin
                 if(!records.isEmpty()) {
                     for (ConsumerRecord<String, Events> record : records) {
                         String key = record.key();
-                        GenericRecord genericRecord = record.value();
-                        Events events = convertGenericToSpecificRecord(genericRecord);
+                        Events events = record.value();
 
                         log.info("key: [" + key + "], events: [" + events.toString() + "], topic: [" + record.topic() + "], partition: [" + record.partition() + "], offset: [" + record.offset() + "]");
 
@@ -85,29 +76,4 @@ public class TransactionalAssignedConsumer extends AbstractConsumerHandler<Strin
             this.consumer.close();
         }
     }
-
-    public static Events convertGenericToSpecificRecord(GenericRecord genericRecord)
-    {
-        Events events = null;
-        try {
-            GenericDatumWriter<GenericRecord> writer = new GenericDatumWriter<>(Events.getClassSchema());
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            Encoder encoder = EncoderFactory.get().binaryEncoder(out, null);
-            writer.write(genericRecord, encoder);
-            encoder.flush();
-
-            byte[] avroData = out.toByteArray();
-            out.close();
-
-            SpecificDatumReader<Events> reader = new SpecificDatumReader<Events>(Events.class);
-            Decoder decoder = DecoderFactory.get().binaryDecoder(avroData, null);
-            events = reader.read(null, decoder);
-        }catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-
-        return events;
-    }
-
 }
