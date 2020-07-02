@@ -51,7 +51,7 @@
         <avro.version>1.8.1</avro.version>
 
         <!-- mysql jdbc -->
-        <mysql-connector.version>5.1.33</mysql-connector.version>
+        <mysql-connector.version>8.0.16</mysql-connector.version>
     </properties>
 
 
